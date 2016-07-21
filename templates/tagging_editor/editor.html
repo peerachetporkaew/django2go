@@ -1,0 +1,614 @@
+{% extends "page_clear.html" %}
+
+{% block content %}
+
+<div style="margin-top:-20px">
+<script language="javascript">
+
+function cmdNPChunk_onClick(){
+    alert(getSelText());
+}
+
+function getSelText()
+{
+    var txt = '';
+    if (window.getSelection)
+    {
+        txt = window.getSelection();
+    }
+    else if (document.getSelection)
+    {
+        txt = document.getSelection();
+    }
+    else if (document.selection)
+    {
+        txt = document.selection.createRange().text;
+    }
+    return txt;
+}
+
+function highlight(){
+    
+    var oTextRange = document.selection.createRange();
+    alert("ab");
+    /*
+    if (oTextRange != null) {
+    
+        alert("The bounding left is \n" + oTextRange.boundingLeft);
+    
+        oTextRange.pasteHTML("<b>" + oTextRange.htmlText + "</b>");
+    
+    }else{
+        alert("error");
+    }
+    */
+}
+
+var text_data;
+
+function create_tagging_editor_from_segmented_text(input){
+    var temp = input.split("|");
+    text_data = temp;
+    var object = "";
+    for(i =0; i < temp.length; i++){
+        object += "<span id='t_"+ i + "'>" + temp[i] + "</span>|";
+    }
+    return object.replace(/\n/g,"<br/>");
+}
+
+$(document).ready(function (){
+    $("#txtText").html(create_tagging_editor_from_segmented_text($('#txtText').html()));
+    bind_all_span();
+    $( "#radio" ).buttonset();
+
+});
+
+var clicked = 0;
+var click_id = -1;
+var stop_id = -1;
+var old_id = -1;
+var chunk_type = 0;
+var type_color = ["#EFE87B","#C6F6EF","#EFBBCB"];
+var gHist= [];
+var tag_data = "{{tag_data}}";
+var edit_on = 0;
+
+
+function dump_history(data){
+    var output = "";
+    for(i=0; i < data.length; i++){
+        output += data[i][0]+","+data[i][1]+","+data[i][2]+","+data[i][3]+"-";
+    }
+    return output;
+}
+
+var timer_on = 0;
+
+function cleartimer(){
+    if (timer_on){
+        clearTimeout(timer);
+        timer_on = 0;
+    }
+}
+
+function starttimer(){
+    hideballoon();
+}
+
+var current_tag_over = -1;
+
+function showballoon(e){
+    logging("showballoon : " + e);
+    if ((chunk_type < 3) && (gHist[e][0] < 3)){
+        if (timer_on){
+            clearTimeout(timer);
+            timer_on = 0;
+        }
+        current_tag_over = e;
+        position = $("#t_" + gHist[e][2]).position();
+        $("#balloon123").css("left",""+(position.left+$("#t_" + gHist[e][2]).width()-50));
+        $("#balloon123").css("top",""+position.top-20);    
+        $("#balloon123").show();
+    }else if ((chunk_type == 3) && (gHist[e][0] == 3)){
+        if (timer_on){
+            clearTimeout(timer);
+            timer_on = 0;
+        }
+        current_tag_over = e;
+        position = $("#t_" + gHist[e][2]).position();
+        $("#balloon123").css("left",""+(position.left+$("#t_" + gHist[e][2]).width()-50));
+        $("#balloon123").css("top",""+(position.top+17));    
+        $("#balloon123").show();
+    }
+}
+
+function hideballoon(){
+
+    timer = setTimeout("hideballoon_timer()",1500);
+    timer_on = 1;
+}
+
+function hideballoon_timer(){
+    $("#balloon123").hide();
+}
+
+function highlight_found(start,len){
+    if (chunk_type != 3){
+            
+            for(var i=start; i < start+len; i++){
+                $("#t_"+i).css("background-color",type_color[chunk_type]);
+                var k = gHist.length
+                $("#t_"+i).mouseenter(genShow(gHist.length));
+
+                $("#t_"+i).mouseleave(function (){
+                        starttimer();
+                    }
+                );                
+            }
+            $("#t_"+start).css("border-left","3px solid #FF8A00");
+            $("#t_"+start).css("border-top","3px solid #FF8A00");
+            clicked = 0;
+            old_id = -1;
+            gHist.push([chunk_type,start,start+len-1,1]);
+        }else{      
+            for(var i=start; i < start+len; i++){
+                $("#t_"+i).css("border-bottom","3px solid red");
+                var k = gHist.length;
+                
+                $("#t_"+i).mouseenter(genShow(gHist.length));
+                $("#t_"+i).mouseleave(function (){
+                        starttimer();
+                    }
+                );
+            }
+            $("#t_"+start).css("border-left","3px solid #FF8A00");
+            $("#t_"+start).css("border-top","3px solid #FF8A00");
+            clicked = 0;
+            old_id = -1;
+            gHist.push([chunk_type,start,start+len-1,1]);
+            edit_on = 0;
+        }
+}
+
+function check_highlight_all(){
+    var temp = gHist[gHist.length-1];
+    var text = [];
+    for(var i =temp[1]; i <= temp[2]; i++){
+        text.push(jQuery.trim(text_data[i]));
+    }
+    var answer = confirm ("คุณต้องการให้ Tag คำนี้ที่ตำแหน่งอื่นๆหรือไม่ ?");
+    if (!answer) return;
+        
+    var len = temp[2]-temp[1]+1;
+    for(i=temp[2]+1; i < text_data.length-len; i++){
+        found = 0;
+        for(var j=0; j<len; j++){
+            if (text_data[i+j] == text[j]){
+                found++;
+            }
+        }
+        if (found==len){
+            highlight_found(i,len);
+        }
+    }
+    
+    
+    
+}
+
+function span_start_mouse_click(object){
+    if (clicked == 0){
+        clicked = 1;
+        logging(clicked + "mclick");
+        click_id = parseInt($(object).attr("id").split("_")[1]);
+        if (chunk_type != 3){
+            $(object).css("background-color","#AFDF61");
+        }else{
+            $(object).css("border-bottom","3px solid blue");
+        }
+    }else{
+    
+        if (chunk_type != 3){
+            object_id = parseInt($(object).attr("id").split("_")[1]);
+            for(var i=click_id; i <= object_id; i++){
+                $("#t_"+i).css("background-color",type_color[chunk_type]);
+                $("#t_"+i).css("border-left","0px");
+                $("#t_"+i).css("border-top","0px");                
+                if (edit_on){
+                    var k = current_tag_over;
+                }else{
+                    var k = gHist.length
+                }
+                $("#t_"+i).mouseenter(function (){
+                        showballoon(k);
+                    }
+                );
+
+                $("#t_"+i).mouseleave(function (){
+                        starttimer();
+                    }
+                );                
+                
+            }
+            clicked = 0;
+            old_id = -1;
+            if (edit_on){
+                gHist[current_tag_over] = [chunk_type,click_id,object_id,0];
+                edit_on = 0;
+                update_mouse_event_from_history();
+            }
+            else{
+                gHist.push([chunk_type,click_id,object_id,0]);
+                edit_on = 0;
+            }
+            logging(clicked + "mclick");
+            check_highlight_all();
+        }else{
+            object_id = parseInt($(object).attr("id").split("_")[1]);
+            for(var i=click_id; i <= object_id; i++){
+                $("#t_"+i).css("border-bottom","3px solid red");
+                $("#t_"+i).css("border-left","0px");
+                $("#t_"+i).css("border-top","0px");
+                
+                if (edit_on){
+                    var k = current_tag_over;
+                }else{
+                    var k = gHist.length
+                }
+                $("#t_"+i).mouseenter(function (){
+                        showballoon(k);
+                    }
+                );
+
+                $("#t_"+i).mouseleave(function (){
+                        starttimer();
+                    }
+                );
+                
+            }
+            clicked = 0;
+            old_id = -1;
+            if (edit_on){
+                gHist[current_tag_over] = [chunk_type,click_id,object_id,0];
+                edit_on = 0;
+                update_mouse_event_from_history();
+            }
+            else{
+                gHist.push([chunk_type,click_id,object_id,0]);
+                edit_on = 0;
+            }
+            check_highlight_all();
+        }
+
+        
+    }
+}
+
+function genShow(x){
+    return function(){
+        showballoon(x);
+    }
+}
+
+function update_mouse_event_from_history(){
+    loading();
+   $ ("span[id^=t_]").unbind("mouseenter");
+   $ ("span[id^=t_]").unbind("mouseleave");
+   //logging("Update : " + gHist.length);
+   for(j=0; j < gHist.length; j++){
+       for (var i=gHist[j][1]; i <= gHist[j][2]; i++){
+           
+           //logging("Enter : " + j+ "," + i);
+           $("#t_"+i).mouseenter(genShow(j));
+    
+            $("#t_"+i).mouseleave(function (){
+                    hideballoon();
+                }
+            );
+        }
+   }
+   finish();
+}
+
+function span_start_mouse_over(object){
+    logging(clicked + "mouseover");
+    object_id = parseInt($(object).attr("id").split("_")[1]);
+    if (clicked == 1){
+        if (chunk_type != 3){
+            for(var i=click_id; i <= old_id; i++){
+                $("#t_"+i).css("background-color","#ffffff");
+            }
+            for(var i=click_id; i <= object_id; i++){
+                $("#t_"+i).css("background-color","#AFDF61"); 
+            }
+            old_id = object_id;
+        }else{
+            for(var i=click_id; i <= old_id; i++){
+                $("#t_"+i).css("border-bottom","0px");
+            }
+            for(var i=click_id; i <= object_id; i++){
+                $("#t_"+i).css("border-bottom","3px solid blue");
+            }
+            old_id = object_id;
+        }
+    }else{
+    
+    }
+}
+
+function bind_all_span(){
+    $ ("span[id^='t_']").click(function (){
+        span_start_mouse_click(this);
+    });
+    
+    $ ("span[id^='t_']").mouseover(function (){
+        span_start_mouse_over(this);
+    });
+    
+    $ ("span[id^='t_']").css("cursor","pointer");
+}
+
+function select_chunk(id){
+    chunk_type = id;
+}
+
+function goto_page(){
+    page = $("#selPage").val();
+    redirect("/app_chunking/tagging_editor/index?tid=" + page);
+}
+
+function update_history(){
+    temp = tag_data.split("-")
+    for(var i=0; i < temp.length-1; i++){
+        t1 = temp[i].split(",");
+        if (t1.length == 4)
+            gHist.push([parseInt(t1[0]),parseInt(t1[1]),parseInt(t1[2]),parseInt(t1[3])]);
+        else
+            gHist.push([parseInt(t1[0]),parseInt(t1[1]),parseInt(t1[2]),parseInt(t1[3]),0]);
+    }
+}
+
+function update_highlight(){
+    for(var i=0; i < gHist.length; i++){
+        //alert(i);
+        temp = gHist[i];
+        if (temp[0] != 3){
+            for(var j=temp[1]; j <= temp[2]; j++){
+                $("#t_"+j).css("background-color",type_color[temp[0]]);
+            }
+            if (temp.length == 4){
+                if (temp[3] == 1){
+                    $("#t_"+temp[1]).css("border-top","3px solid orange");
+                    $("#t_"+temp[1]).css("border-left","3px solid orange");
+                }
+            }
+        }else{
+            for(var j=temp[1]; j <= temp[2]; j++){
+                $("#t_"+j).css("border-bottom","3px solid red");
+            }
+            if (temp.length == 4){
+                if (temp[3] == 1){
+                    $("#t_"+temp[1]).css("border-top","3px solid orange");
+                    $("#t_"+temp[1]).css("border-left","3px solid orange");
+                }
+            }
+        }
+    }
+    //alert("Start");
+}
+
+$(document).ready(function(){
+    $("option[value={{tid}}]").attr("selected","true");
+    update_history();
+    update_highlight();
+    update_mouse_event_from_history();
+});
+
+
+
+</script>
+<div style="position:fixed; width:100%; left:0px; top:0px; border-bottom:8px solid #E6EFD1; height:50px; background:rgba(147,175,32,1.0);">
+</div>
+<div style="position:fixed; width:950px; margin-left:-41; top:0; height:50px; border:0px solid black; background:rgba(147,175,32,1.0);">
+<table>
+<tr><td>
+    <div id="radio" style="margin-left:50px;">
+        <input type="radio" id="radio1" name="radio" onclick="select_chunk(0);" checked="checked" /><label for="radio1">NP</label>
+        <input type="radio" id="radio2" name="radio" onclick="select_chunk(1);" /><label for="radio2">VPI</label>
+        <input type="radio" id="radio3" name="radio" onclick="select_chunk(2);" /><label for="radio3">VPT</label>
+        <input type="radio" id="radio4" name="radio" onclick="select_chunk(3);" /><label for="radio4">SNP</label>
+    </div>
+
+<table style="margin-left:50px;">
+<tr height=10>
+<td width=35 style="background-color:#EFE87B;"></td>
+<td width=41 style="background-color:#C6F6EF;"></td>
+<td width=43 style="background-color:#EF99A9;"></td>
+</tr>
+</table>
+</td>
+<td width=700 align=right>
+<script>
+function save_tagging(){
+    var hist = dump_history(gHist);
+    var tid = $("#txtTextID").val();
+    $.post("/app_chunking/tagging_editor/save",{history : hist, textid : tid},function (data){
+        alert(data);
+    });
+}
+
+function save_and_next(){
+    var hist = dump_history(gHist);
+    var tid = $("#txtTextID").val();
+    $.post("/app_chunking/tagging_editor/save",{history : hist, textid : tid},function (data){
+        next = parseInt(tid) + 1;
+        if (next < 97){
+            redirect("/app_chunking/tagging_editor/index?tid=" + next);
+        }else{
+            alert("This is the last page.");
+        }
+    });
+}
+
+function save_and_previous(){
+    var hist = dump_history(gHist);
+    var tid = $("#txtTextID").val();
+     $.post("/app_chunking/tagging_editor/save",{history : hist, textid : tid},function (data){
+        next = parseInt(tid) - 1;
+        if (next > 0){
+            redirect("/app_chunking/tagging_editor/index?tid=" + next);
+        }else{
+            alert("This is the first page.");
+        }
+    });
+}
+
+function undo_tagging(){
+    loading();
+    var temp = gHist.pop();
+    index = temp;
+    start = parseInt(index[1]);
+    end = parseInt(index[2]);
+    for(var i=start; i <= end; i++){
+        $("#t_"+i).css("background-color","#ffffff");
+        $("#t_"+i).css("border","0px");
+    }
+    while(temp[3] == 1){
+        temp = gHist.pop();
+        index = temp;
+        start = parseInt(index[1]);
+        end = parseInt(index[2]);
+        for(var i=start; i <= end; i++){
+            $("#t_"+i).css("background-color","#ffffff");
+            $("#t_"+i).css("border","0px");
+        }
+    }
+    finish();
+}
+</script>
+<input type=button value="Undo" onclick="undo_tagging()" />
+<input type=button value="Save" onclick="save_tagging()" />
+<input type=hidden value="{{tid}}" id="txtTextID"/>
+<input type=button value="Save and Previous" onclick="save_and_previous()" />
+<input type=button value="Save and Next" onclick="save_and_next()" />
+
+
+{{page_select|safe}}
+<input type=button onclick="goto_page()" value="Go" />
+<a href="/app_chunking/authentication/logout">[LOG OUT]</a>
+<input type=button style="visibility:hidden;" value="Update" onclick="update_mouse_event_from_history()" />
+<input type=button style="visibility:hidden;" value="Hist" onclick="$('#history').html(dump_history(gHist));" />
+
+</td>
+</tr>
+</table>
+</div>
+
+<div id="txtText" style="line-height:350%; margin:10px; padding:10px; height:450px; width:95%;">
+{{text}}
+</div>
+<script>
+$(function (){
+    $("#balloon123").hide();
+});
+
+
+function check_span_in_history(id){
+    found = -1
+    for(var i = 0; ((i < gHist.length) && (found == -1)); i++){
+        if ((id >= gHist[i][1]) && (id <= gHist[i][2])){
+            found = i;
+        }
+    }
+    return found;
+}
+
+
+function startedit(){
+    edit_on = 1;
+    var gTemp = gHist[current_tag_over];
+    for(var i=gTemp[1]; i <= gTemp[2]; i++){
+        if (chunk_type != 3){
+            $("#t_"+i).css("background-color","#ffffff");
+        }else{
+             $("#t_"+i).css("border-bottom","0px");
+        }
+        $("#t_"+i).unbind("mouseenter");
+        $("#t_"+i).unbind("mouseleave");        
+        $("#t_"+i).mouseover(function (){
+            span_start_mouse_over(this);
+        });
+    }
+    if (chunk_type != 3){
+        $("#t_"+gTemp[1]).css("background-color","#AFDF61");
+    }else{
+        $("#t_"+gTemp[1]).css("border-bottom","3px solid #0000FF");
+    }
+    $("#balloon123").hide();
+    clicked = 1;
+    logging("edit");
+    click_id = gTemp[1];
+}
+
+function logging(str){
+    //$('#log').html(str + "<br/>" + $('#log').html());
+    //$('#history').html(dump_history(gHist));
+}
+
+function deletetag(){
+     var gTemp = gHist[current_tag_over];
+     for(var i=gTemp[1]; i <= gTemp[2]; i++){
+        if (chunk_type != 3){
+            $("#t_"+i).css("background-color","#ffffff");
+        }else{
+             $("#t_"+i).css("border-bottom","0px");
+        }
+        $("#t_"+i).css("border-left","0px");
+        $("#t_"+i).css("border-top","0px");
+        $("#t_"+i).unbind("mouseenter");
+        $("#t_"+i).unbind("mouseleave");        
+        $("#t_"+i).mouseover(function (){
+            span_start_mouse_over(this);
+        });
+    }
+    gHist.splice (current_tag_over,1);
+    update_mouse_event_from_history();
+    $("#balloon123").hide();
+}
+
+function loading(){
+    $('#loading_div').show();
+}
+
+function finish(){
+    $('#loading_div').hide();
+}
+
+$(function (){
+    finish();
+});
+</script>
+
+<div onmouseover="cleartimer();" onmouseout="starttimer();" id="balloon123" style="position:absolute; width:70px; height:30px; font-size:10px; padding:5px; vertical-align:top;">
+<span  onmouseover="cleartimer();" onclick="startedit();" style="color:blue; cursor:pointer;">[Edit]</span><span onmouseover="cleartimer();" onclick="deletetag();" style="cursor:pointer;color:red;">[Delete]</span>
+</div>
+</div>
+<div id="log" style="position:fixed; top:0px; left:0px; width:250px; height:300px; border : 0px solid black; overflow:auto; z-index:-100;">
+
+</div>
+
+<div id="history" style="position:fixed; top:300px; left:0px; width:250px; height:300px; border : 0px solid black; overflow:auto; z-index : -100;">
+
+</div>
+
+
+<div id="loading_div" align=center style="position:fixed; top:0; margin-top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8);">
+<div id="loading" align=center style="position:fixed; top:50%; margin-top:-150px; left:50%; margin-left:-0px; width:250px; height:100px; border : 10px solid #999999; background:rgba(255,255,255,0.8); overflow:auto;">
+<br/>Loading<br/>
+<center>
+<img src="{% include "media_path.html" %}/images/loading.gif"/>
+</center>
+</div>
+</div>
+
+{% endblock %}

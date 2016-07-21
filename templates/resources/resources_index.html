@@ -1,0 +1,40 @@
+{% extends "page.html" %}
+
+{% block content %} 
+<ol>
+<li><a href="/app_chunking/resources/get_unknown_list/">Unknown Word List with Frequency</a><br/></li>
+<li><a href="/app_chunking/resources/name_entity_list/">Name Entity List</a><br/></li>
+<li><a href="/app_chunking/resources/get_ab/"/>ABBR.</a></li>
+</ol>
+
+<Br/><strong>Count Percent of Unknown : </strong></br>
+<pre>
+All word = 1353170
+Known = 1286741
+Unknown = 66429
+Percent of Unk = 4.90913928036
+</pre>
+
+<Br/><strong>Count Percent of NE: </strong></br>
+<pre>
+All word = 1353170 
+Other = 1275386 
+NE = 77784 
+Percent of NE = 5.74827996482
+</pre>
+
+<script>
+
+function showtips(e){
+    ddrivetip('<span id="abc">Loading...</span>');
+    $.get("/app_chunking/resources/showhello", {}, function (data){
+        $("#abc").html(data+$(e).html());
+    });
+}
+
+</script>
+
+<a href="http://www.yahoo.com" onMouseover="showtips(this)";
+ onMouseout="hideddrivetip()">Search Engine</a>
+
+{% endblock %}

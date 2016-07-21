@@ -1,0 +1,34 @@
+<script>
+
+function cmdTestWeb_onClick(){
+    var sendData = $("#txtSendData").val();
+    data1 = {};
+    sendData = sendData.split(",");
+    
+    for(var i=0; i < sendData.length; i++){
+        temp = sendData[i].split("=");
+        data1[temp[0]] = temp[1];
+    }
+
+    if ($("#cmbMethod").val() == "POST"){
+         $.post($("#txtURL").val(), data1, function (data){
+             alert(data);
+         });
+    }else{
+          $.get($("#txtURL").val(), data1, function (data){
+             alert(data);
+         });   
+    }
+}
+
+
+</script>
+<div style=""> 
+<div style="width:100px; float:left;">METHOD : </div><select id="cmbMethod">
+<option value="POST">POST</option>
+<option value="POST">GET</option>
+</select><Br/>
+<div style="width:100px; float:left;">URL  : </div><input type="text" size=100 id="txtURL" /><br/><br/>
+<div style="width:100px; float:left;">DATA : </div><input type="text" size=100 id="txtSendData" /><br/><br/>
+<input type="button" value="Submit" onclick="cmdTestWeb_onClick()"/>
+</div>

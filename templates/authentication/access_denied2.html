@@ -1,0 +1,43 @@
+{% extends "global_page.html" %}
+
+{% block body %}
+
+<div id="main_login">
+<style>
+    div.center{
+        margin-left:50%;
+    }
+</style>
+<br/>
+<br/>
+<div class="center">
+<span style="color:red">Access Denied</span>
+<div style="width:150px;">Username : </div><input type=text size=15 id="txtUsername"/><br/>
+<div style="width:150px;">Password : </div><input type=password size=15 id="txtPassword"/>
+<input type=button id="cmdLogin" value="Log In">
+</div>
+
+<script>
+$(document).ready(function (){
+    $("#cmdLogin").click(function (){
+        $.post('/app/authentication/login/',
+            { username : $("#txtUsername").val(),
+              password : $("#txtPassword").val()}
+            ,function (data){
+                var output = getResponse(data);
+                //alert(output);
+                if (output == "Success"){
+                    window.location = "/app/tagging_editor/index";
+                }else{
+                    alert(output);
+                }
+            });
+    });
+});
+
+
+
+</script>
+</div>
+
+{% endblock %}

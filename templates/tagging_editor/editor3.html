@@ -1,0 +1,32 @@
+{% extends "page.html" %}
+
+{% block content %}
+<div style="margin-top:-20px">
+<script>
+
+$(function (){
+
+    text = $("#text").html();
+    text = text.split(" ");
+    output = "";
+    for(i=0; i < text.length; i++){
+        output += "<span id='t_" + i + "'>" + text[i] + "</span> ";
+    }
+    $("#text").html(output);
+    
+    $("span[id^='t_']").click(function (){
+        pos = $(this).position();
+        alert(pos.left + "," + pos.top);
+        $("#text").append("<div style=' background: rgba(0, 255, 0, 0.5); position:absolute; float:left; width:30; height:30; top:" + (pos.top-5) + "; left:" + (pos.left-5) + ";'></div>");
+    });
+});
+
+</script>
+
+
+<div id="text" style="width:700px; padding:10px; border:1px solid black; height:300px; overflow:auto">
+Hello World Of Best A B CDD EEFF GGEGEG
+</div>
+
+</div>
+{% endblock %}

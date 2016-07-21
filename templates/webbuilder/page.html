@@ -1,0 +1,272 @@
+<html>
+<head>
+
+<script src='{% include "media_path.html" %}/js/jquery-1.4.4.min.js' type="text/javascript" ></script>
+<script src='{% include "media_path.html" %}/js/jquery-ui/js/jquery-ui-1.8.9.custom.min.js' type="text/javascript" ></script>
+<script src='{% include "media_path.html" %}/js/jquery-layout/jquery.layout.min.js' type="text/javascript" ></script>
+<script src='{% include "media_path.html" %}/js/jquery-treeview/jquery.treeview.min.js' type="text/javascript" ></script>
+<script src='{% include "media_path.html" %}/js/edit_area/edit_area_full.js' ></script>
+<script src='{% include "media_path.html" %}/js/jquery-treeview/jquery.treeview.js' type="text/javascript" ></script>
+<script src='{% include "media_path.html" %}/js/jquery-treeview/lib/jquery.cookie.js' type="text/javascript"></script>
+
+<link type="text/css" rel="stylesheet" href='{% include "media_path.html" %}/js/jquery-ui/css/smoothness/jquery-ui-1.8.9.custom.css'/>
+<link type="text/css" rel="stylesheet" href='{% include "media_path.html" %}/js/jquery-layout/lib/css/layout-default-latest.css' />
+<link type="text/css" rel="stylesheet" href='{% include "media_path.html" %}/js/jquery-treeview/jquery.treeview.css' />
+
+<script>
+
+
+</script>
+<style type="text/css">
+    /*demo page css*/
+    body{ 
+        font: 80% "Trebuchet MS", sans-serif; 
+        margin: 50px;
+        background: #666;
+        width:      100%;
+        height:     100%;                   
+        padding:    0;
+        margin:     0;
+        overflow:   auto; /* when page gets too small */
+    }
+    .demoHeaders { margin-top: 2em; }
+    #dialog_link {padding: .4em 1em .4em 20px;text-decoration: none;position: relative;}
+    #dialog_link span.ui-icon {margin: 0 5px 0 0;position: absolute;left: .2em;top: 50%;margin-top: -8px;}
+    ul#icons {margin: 0; padding: 0;}
+    ul#icons li {margin: 2px; position: relative; padding: 4px 0; cursor: pointer; float: left;  list-style: none;}
+    ul#icons span.ui-icon {float: left; margin: 0 4px;}
+    
+    #container {
+        background: #999;
+        height:     100%;
+        margin:     0 auto;
+        width:      100%;
+        min-width:  700px;
+        _width:     700px; /* min-width for IE6 */
+    }
+    
+    .pane {
+        display:    none; /* will appear when layout inits */
+    }
+    
+    .ui-layout-center{
+        padding:0px;
+    }
+</style>
+
+
+<script language="Javascript" type="text/javascript">
+var CurrentFileName = "";
+
+var app_name = "/app/";
+
+function getResponse(data){
+    var output = eval('(' + data + ')');
+    if (output.status == "success"){
+        return output.data
+    }else{
+        alert(output.data)
+    }
+}
+
+function reload_editor(ftype){
+        editAreaLoader.init({
+            id: "example_4" // id of the textarea to transform      
+            ,start_highlight: true  // if start with highlight
+            ,font_size: "10"    
+            ,allow_resize: "no"
+            ,allow_toggle: false
+            ,language: "en"
+            ,syntax: ftype
+            ,save_callback: "test_file_upload"
+            ,replace_tab_by_spaces: 4
+            ,toolbar: " save, search, go_to_line, select_font,  undo, redo,  change_smooth_selection, highlight, reset_highlight, |, help"
+            ,min_height: 467
+        });
+}
+
+function reload_console_editor(){
+        editAreaLoader.init({
+            id: "console" // id of the textarea to transform      
+            ,start_highlight: true  // if start with highlight
+            ,font_size: "10"    
+            ,allow_resize: "no"
+            ,allow_toggle: false
+            ,language: "en"
+            ,syntax: "python"
+            ,save_callback: "save_console"
+            ,replace_tab_by_spaces: 4
+            ,toolbar: " save, search, go_to_line, select_font,  undo, redo, change_smooth_selection, highlight, reset_highlight, |, help"
+            ,min_height: 300
+        });
+}
+
+function load_file(file){
+    //alert(file);
+    $("#editor").html("loading....");
+    $.get(app_name + 'webbuilder/load/',{path : file},function (data){
+        //alert(data);
+        CurrentFileName = file;
+        var obj = CurrentFileName.split(".");
+        $("#txtFilename").html("[ File name : " + file + " ]");
+        if (obj[obj.length-1] == "html"){
+            $("#editor").hide();        
+            $("#editor").html(data);        
+            reload_editor("html");
+            $("#editor").show();        
+        }else{
+            $("#editor").hide();        
+            $("#editor").html(data);        
+            reload_editor("python");
+            $("#editor").show();        
+        }
+    });
+}
+
+function save_file(){
+
+    dd = $("#example_4").html();
+    alert(dd);
+    $.post(app_name + "webbuilder/save_file/",{path : CurrentFileName, 
+data : dd},function (data){
+        var output = getResponse(data); 
+
+    });
+}
+
+function save_file2(){
+
+    dd = $("#example_4").html();
+    alert(dd);
+    $.post(app_name + "webbuilder/save_file/",{path : CurrentFileName,
+data : dd},function (data){
+        var output = getResponse(data);
+
+    });
+}
+
+function save_completed(){
+  alert("Completed !");
+}
+
+
+$(document).ready(function (){
+    $('#container').layout({ applyDefaultStyles: true });
+    // second example
+    $("#browser").treeview({
+        animated:"normal",
+        persist: "cookie"
+    });
+    
+    $("#browser1").treeview({
+        animated:"normal",
+        persist: "cookie"
+    });
+    
+    $("#browser2").treeview({
+        animated:"normal",
+        persist: "cookie"
+    });
+    
+    $("#browser3").treeview({
+        animated:"normal",
+        persist: "cookie"
+    });
+    
+    reload_console_editor();
+
+});
+</script>
+
+
+</head>
+
+<body>
+<style>
+
+#divLoading{
+  margin: 0;
+  font-size: 100% /*smaller*/;
+  font-weight: bold;
+  line-height: 1.1;
+  text-align: left;
+  position: fixed;
+  top: 0em;
+  left: 0px;
+  width: 8.5em;
+  border : 1px solid #000000;
+  padding : 3px;
+  background-color : #F9FFEF;
+}
+
+</style>
+
+<script>
+
+$(document).ready(function (){
+    $("#divLoading").ajaxSend(function () {
+        $(this).show('slow');
+    })
+    
+    $("#divLoading").ajaxSuccess(function () {
+        $(this).hide('slow');
+    })
+    
+    $("#divLoading").hide();
+    
+    $("input[type=button]").each(function (){
+        $(this).button();
+    });
+})
+
+</script>
+
+
+
+<div id="container">
+    <div class="pane ui-layout-center" style="padding:0px;">
+<form action="/app/webbuilder/save_file3" method=post enctype="multipart/form-data">
+<div id="editor" style="left:-0px; margin:-10px; margin-bottom:-90px; position:relative;">
+
+</div>
+<input type=submit value=Submit>
+</form>
+    </div>
+    <div class="pane ui-layout-north">Django Web Version 0.1.1 
+    <span id="txtFilename"></span><br/>
+    <a href="/app/authentication/logout">[LOG OUT]</a>
+    <script>
+        function test_file_upload(){
+      $("#test5").val(editAreaLoader.getValue("example_4"));
+      $("#txtFilename1").val($("#txtFilename").html());
+      frmTextUpload.submit();
+        }
+    </script>
+
+    <form target="save_output" name="frmTextUpload" method=post enctype="multipart/form-data" action="/app/webbuilder/save_file3">
+    <textarea style="width:0px; height:0px; visibility:hidden;" id="test5" name="test5"></textarea><br/>
+    <input type=text name="txtFilename1"  id="txtFilename1" style="width:0px; height:0px; visibility:hidden;" />
+    </form>
+    <iframe style="width:0px; height:0px; visibility:hidden;" name="save_output">
+    </iframe>
+
+    <div id="divLoading">Loading.....</div>
+    
+    </div>
+    <div class="pane ui-layout-south">
+        <div style="height : 230px; overflow : y-scroll; margin-left:-10px; margin-top:-10px;">
+        {% include "webbuilder/south.html" %}
+        </div>
+    
+    
+    </div>
+    <div class="pane ui-layout-west">
+    {{directory_tree|safe}}
+    </div>
+</div>
+
+
+
+</body>
+
+</html>

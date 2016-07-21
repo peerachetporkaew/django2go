@@ -1,0 +1,17 @@
+<script>
+
+function upload_completed(){
+    $("#txtCompleted").html("Upload Completed !");
+}
+
+</script>
+
+<form enctype="multipart/form-data" name="frmUpload" target="iframe_upload" action="/app_chunking/webbuilder/upload_file/" method="POST">
+    File upload : <input type="file" name="file" id="filezip"/><br/><br/>
+    Destination : <input type="button" value="Select .." id="txtSelectDest" onclick="select_folder();"/>
+    <div id="lblDestinaton">./</div><br/>
+    <input type="hidden" id="txtDestination" name="destination" value="./"/>
+    <input type="hidden" name="MAX_FILE_SIZE" value="100000" />
+    <input type="submit" value="Upload File" id="cmdUploadZip" onclick="alert('hi');$('#txtCompleted').html('');"/><span id="txtCompleted"></span>
+</form>    
+<iframe name="iframe_upload" style="width:0px; height:0px; visibility:hidden;"></iframe>

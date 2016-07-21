@@ -1,0 +1,90 @@
+<script>
+    $(function() {
+        $( "#tabs" ).tabs()
+        $( "#dlgTree" ).hide();
+        $( "#dlgConsoleOutput" ).hide();
+    });
+    
+
+function run_console(){
+    $.post(app_name + "webbuilder/run/",{code : editAreaLoader.getValue("console")}, function (data){
+        var output = getResponse(data);
+        //alert(output.data);
+        $("#txtConsoleOutput").html(output);
+        $("#dlgConsoleOutput").dialog().show();
+    });
+}
+
+function select_folder(){
+    $( "#dlgTree" ).dialog({ height: 530 }).show();
+}
+
+function select_dir(path){
+    //alert(path);
+    $("#lblDestinaton").html(path);
+    $("#txtDestination").val(path);
+    $("#dlgTree" ).dialog('close');
+}
+</script>
+
+<div id="dlgTree" title="Destination Folder">
+    <p id="txtTree">
+    <div style="overflow:hidden; height:520px; position:absolute;">
+        {{folder_tree|safe}}
+    </div>
+    </p>
+</div>
+
+<div id="dlgConsoleOutput" title="Console Output">
+    <p id="txtConsoleOutput"></p>
+</div>
+
+<div style="margin-top : -13px; margin-left: -13px; margin-right:-10px; overflow:hidden;">
+<div class="demo" style="overflow:hidden;">
+
+<div id="tabs">
+    <ul>
+        <li><a href="#tabs-1">Python Console</a></li>
+        <li><a href="#tabs-2">File Upload</a></li>
+        <li><a href="#tabs-3">File Operations</a></li>
+        <li><a href="#tabs-4">Test Web</a></li>
+        <li><a href="#tabs-5">Designer</a></li>
+    </ul>
+    <div id="tabs-1">
+        <p>
+            <input type="button" value="Run Code" id="cmdRun" onclick="run_console();"/>
+            <textarea id="console" style="height: 50px; width: 100%;" name="console"></textarea>
+        </p>
+    </div>
+    <div id="tabs-2">
+        <p>
+            {% include "webbuilder/file_upload.html" %}
+        </p>
+    </div>
+    <div id="tabs-3">
+        <p>
+            {% include "webbuilder/file_operations.html" %}
+        </p>
+    </div>
+    <div id="tabs-4">
+        <p>
+            {% include "webbuilder/test_web.html" %}
+        </p>
+    </div>
+    <div id="tabs-5">
+<script>
+    function cmdDesigner_onClick(){
+        $("#designer").html(editAreaLoader.getValue("example_4"));
+    }
+</script>    
+    
+        <p> <input type=button id="cmdDesigner" value="Refresh" onclick="cmdDesigner_onClick();" />
+            <div style="padding: 10px; border:1px solid #999999;" id="designer">
+            
+            </div>
+        </p>
+    </div>
+</div>
+
+</div>
+</div>

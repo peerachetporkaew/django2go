@@ -1,0 +1,18 @@
+{% extends "page.html" %}
+
+{% block content %} 
+<script language="javascript">
+
+function cmdSearch_onClick(){
+    alert($("#txtSearch").val());
+}
+
+</script>
+
+Search text in file : <input type="text" id="txtSearch"/> <input type=button value="Search" id="cmdSearch" onclick="cmdSearch_onClick();">
+
+<div style="border : 1px solid #333333; height:600; width:100%; overflow:auto">
+
+</div>
+
+{% endblock %}

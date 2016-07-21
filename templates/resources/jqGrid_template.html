@@ -1,0 +1,35 @@
+<table id="list2"></table> 
+<div id="pager2"></div> 
+
+<script>
+$(document).ready(function (){
+
+var gridName={% block gridName %}"list2"{% endblock %};
+
+
+jQuery("#"+gridName).jqGrid({ 
+            url:'/app_chunking/resources/file_list/', 
+            datatype: "json", 
+            height: 250,
+            width : 500,
+            colNames:
+            {% block column_name %}
+            ['ID','Filename','Status']
+            {% endblock %}
+            , 
+            
+            colModel:[
+            {% block column_model %}
+                       {name:'id',index:'id', width:60, sorttype:"int"}, 
+                       {name:'filename',index:'filename', width:90}, 
+                       {name:'status',index:'status', width:90}, 
+             {% endblock %}   
+                       ], 
+            viewrecords: true, 
+            sortorder: "desc", 
+            caption:"JSON Example" 
+            
+}); 
+
+});
+</script>

@@ -1,0 +1,83 @@
+<script>
+
+function del_file(){
+    var fname = $("#txtFilename").html().split(":")[1].replace("]","").replace(" ","");
+    var answer = confirm ("Do you want to delete " + fname + " ?");
+    if (answer){
+        $.post(app_name + "webbuilder/del_file/",{file : fname},function (data){
+            var result = getResponse(data);
+            alert(result);
+        });
+    }
+}
+
+$(function (){
+   $( "#dlgTree2" ).hide();
+   $( "#dlgTree3" ).hide();
+});
+
+function select_folder2(){
+    $( "#dlgTree2" ).dialog({ height: 530 }).show();
+}
+
+function select_folder3(){
+    $("#dlgTree3" ).dialog({ height: 530 }).show();
+}
+
+var new_folder_path = "./";
+
+function select_dir2(path){
+    new_folder_path = path;
+    $("#dlgTree2" ).dialog('close');
+    var name=prompt("Folder Name : ");
+    if (name){
+        var file = (new_folder_path + "/" + name);
+        $.post(app_name + "webbuilder/new_folder/",{folder : file},function (data){
+            var result = getResponse(data);
+            alert(result)
+        });
+    }else{
+        alert("Cancel");
+    }
+}
+
+function select_dir3(path){
+    folder_path = path;
+    $("#dlgTree3" ).dialog('close');
+    var name=prompt("File Name : ");
+    if (name){
+        var file = (folder_path + "/" + name);
+        $.post(app_name + "webbuilder/new_file/",{filename : file},function (data){
+            var result = getResponse(data);
+            alert(result)
+        });
+    }else{
+        alert("Cancel");
+    } 
+}
+
+function new_file(){
+    alert("hi");
+}
+
+</script>
+
+<div id="dlgTree2" title="Destination Folder">
+    <p id="txtTree">
+    <div style="overflow:hidden; height:520px; position:absolute;">
+        {{folder_tree2|safe}}
+    </div>
+    </p>
+</div>
+
+<div id="dlgTree3" title="Destination Folder">
+    <p id="txtTree">
+    <div style="overflow:hidden; height:520px; position:absolute;">
+        {{folder_tree3|safe}}
+    </div>
+    </p>
+</div>
+
+<input type="button" value="Delete File" onclick="del_file();"/>
+<input type="button" value="New File" onclick="select_folder3();"/>
+<input type="button" value="New Folder" onclick="select_folder2();"/>

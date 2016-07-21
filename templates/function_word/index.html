@@ -1,0 +1,32 @@
+{% extends "global_page.html" %}
+
+{% block body %}
+<script>
+{% include "function_word/index.js" %}
+</script>
+
+<style>
+    #main_function_word{
+        padding : 20px;
+    }
+</style>
+<div id="main_function_word">
+<h2>Function Word Colocation</h2>
+<table width=1000px border=0>
+<tr>
+    <td width=250px align=center style="border:1px solid #BBBBBB"><strong>
+    <input type=button value="<<" onclick="previous_page();" />
+    BIGRAM List
+    <input type=button value=">>" onclick="next_page();" />
+    </strong></td>
+    <td align=center style="padding:10px;border:1px solid #BBBBBB;"><strong>Search Result</strong></td>
+</tr>
+<tr>
+    <td width=250px  align=left style="height:500px; border:1px solid #BBBBBB"><div style="height:500px; padding:5px; overflow:auto;" id="word_list" ></div></td>
+    <td align=center width=750px style="height:500px; padding:10px;border:1px solid #BBBBBB;"><div style="height:500px; width:750px; padding:5px; overflow:auto;" id="search_result" ></div></td>
+</tr>
+</table>
+
+</div>
+
+{% endblock %}

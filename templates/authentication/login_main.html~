@@ -1,0 +1,60 @@
+{% extends "global_page.html" %}
+
+{% block body %}
+<div style="width:100%; height:100%; background-color:#17507F;">
+<br/>
+<br/>
+
+<br/>
+<br/>
+
+<div style="background:url('/ricemedia/image/bg.png') repeat; width:950px; height:auto; left:50%; margin-left:-475px; position:relative; border:1px solid #333333;">
+<div style="background-color:white;padding:20px 20px 20px 20px;">
+<div style="float:left"></div><h2 style="color:#0040FF;">รายงานสถิติงานวิจัยด้านข้าว</h2>
+
+<div style=" padding:20px 20px 20px 20px; margin-top:-20px;">
+<div id="main_login">
+<style>
+    div.center{
+        margin-left:50%;
+    }
+</style>
+<br/>
+<br/>
+<div class="center">
+<div style="width:150px;">Username : </div><input type=text size=15 id="txtUsername"/><br/>
+<div style="width:150px;">Password : </div><input type=password size=15 id="txtPassword"/>
+<input type=button id="cmdLogin" value="Log In">
+</div>
+
+<script>
+$(document).ready(function (){
+    $("#cmdLogin").click(function (){
+        $.post('/app_rice/authentication/login/',
+            { username : $("#txtUsername").val(),
+              password : $("#txtPassword").val()}
+            ,function (data){
+                var output = getResponse(data);
+                //alert(output);
+                if (output == "Success"){
+                    window.location = "/app_rice/rice_information/index";
+                }else{
+                    alert(output);
+                }
+            });
+    });
+});
+
+
+
+</script>
+
+
+
+</div>
+</div>
+</div>
+</div>
+<div align=center style="color:white; font-size:12px;">Web Design By Human Lanaguage Technology Laboratory</div>
+
+{% endblock %}

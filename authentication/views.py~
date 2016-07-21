@@ -1,0 +1,36 @@
+# -*- coding: utf-8 -*-
+G_PATH = "/".join(__file__.split("/")[:-1]) + "/"
+
+if __name__ == "__main__":
+        print G_PATH
+        exit()
+
+from django.http import HttpResponse
+from django.template import Template,Context
+from django.core.context_processors import csrf
+import json,settings
+
+def index(request):
+	return HttpResponse("Hello")
+
+def form(request):
+	t = Template(open(G_PATH + "html/main_form.html").read())
+	c = {}
+	c.update(csrf(request))
+	return HttpResponse(t.render(Context(c)))
+
+def upload_file(request):
+	return HttpResponse("Hi")
+
+def getname(request):
+	data = {}
+	if request.GET.has_key("name"):
+		data["name"] = request.GET["name"]
+	else:
+		data["name"] = "test"
+	return HttpResponse(json.dumps(data))
+
+
+
+if __name__ == "__main__":
+	print getname("abc")

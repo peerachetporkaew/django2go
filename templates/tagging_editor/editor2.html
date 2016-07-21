@@ -1,0 +1,268 @@
+{% extends "page.html" %}
+
+{% block content %}
+<div style="margin-top:-20px">
+<h3 style="color:#333333;">Tagging Editor with SNP</h3>
+<script language="javascript">
+
+function cmdNPChunk_onClick(){
+    alert(getSelText());
+}
+
+function getSelText()
+{
+    var txt = '';
+    if (window.getSelection)
+    {
+        txt = window.getSelection();
+    }
+    else if (document.getSelection)
+    {
+        txt = document.getSelection();
+    }
+    else if (document.selection)
+    {
+        txt = document.selection.createRange().text;
+    }
+    return txt;
+}
+
+function highlight(){
+    
+    var oTextRange = document.selection.createRange();
+    alert("ab");
+    /*
+    if (oTextRange != null) {
+    
+        alert("The bounding left is \n" + oTextRange.boundingLeft);
+    
+        oTextRange.pasteHTML("<b>" + oTextRange.htmlText + "</b>");
+    
+    }else{
+        alert("error");
+    }
+    */
+}
+
+function create_tagging_editor_from_segmented_text(input){
+    var temp = input.split("|");
+    var object = "";
+    for(i =0; i < temp.length; i++){
+        object += "<span id='t_"+ i + "'>" + temp[i] + "</span>";
+    }
+    return object.replace(/\n/g,"<br/>");
+}
+
+$(document).ready(function (){
+    $("#txtText").html(create_tagging_editor_from_segmented_text($('#txtText').html()));
+    bind_all_span();
+    $( "#radio" ).buttonset();
+
+});
+
+var clicked = 0;
+var click_id = -1;
+var stop_id = -1;
+var old_id = -1;
+var chunk_type = 0;
+var type_color = ["#EFE87B","#C6F6EF","#EFBBCB"];
+var gHist= [];
+var tag_data = "{{tag_data}}";
+
+function dump_history(data){
+    var output = "";
+    for(i=0; i < data.length; i++){
+        output += data[i][0]+","+data[i][1]+","+data[i][2]+"-";
+    }
+    return output;
+}
+
+function span_start_mouse_click(object){
+    if (clicked == 0){
+        clicked = 1;
+        click_id = parseInt($(object).attr("id").split("_")[1]);
+        if (chunk_type != 3){
+            $(object).css("background-color","#AFDF61");
+        }else{
+            $(object).css("border-bottom","3px solid blue");
+        }
+    }else{
+    
+        if (chunk_type != 3){
+            object_id = parseInt($(object).attr("id").split("_")[1]);
+            for(var i=click_id; i <= object_id; i++){
+                $("#t_"+i).css("background-color",type_color[chunk_type]);
+            }
+            clicked = 0;
+            old_id = -1;
+            gHist.push([chunk_type,click_id,object_id]);
+            //alert(dump_history(gHist));
+        }else{
+            object_id = parseInt($(object).attr("id").split("_")[1]);
+            for(var i=click_id; i <= object_id; i++){
+                $("#t_"+i).css("border-bottom","3px solid red");
+            }
+            clicked = 0;
+            old_id = -1;
+            gHist.push([chunk_type,click_id,object_id]);    
+        }
+    }
+}
+
+function span_start_mouse_over(object){
+    object_id = parseInt($(object).attr("id").split("_")[1]);
+    if (clicked == 1){
+        if (chunk_type != 3){
+            for(var i=click_id; i <= old_id; i++){
+                $("#t_"+i).css("background-color","#ffffff");
+            }
+            for(var i=click_id; i <= object_id; i++){
+                $("#t_"+i).css("background-color","#AFDF61");
+            }
+            old_id = object_id;
+        }else{
+            for(var i=click_id; i <= old_id; i++){
+                $("#t_"+i).css("border-bottom","0px");
+            }
+            for(var i=click_id; i <= object_id; i++){
+                $("#t_"+i).css("border-bottom","3px solid blue");
+            }
+            old_id = object_id;
+        }
+    }else{
+    
+    }
+}
+
+function bind_all_span(){
+    $ ("span[id^='t_']").click(function (){
+        span_start_mouse_click(this);
+    });
+    
+    $ ("span[id^='t_']").mouseover(function (){
+        span_start_mouse_over(this);
+    });
+}
+
+function select_chunk(id){
+    chunk_type = id;
+}
+
+function goto_page(){
+    page = $("#selPage").val();
+    redirect("/app_chunking/tagging_editor/index?tid=" + page);
+}
+
+function update_history(){
+    temp = tag_data.split("-")
+    for(var i=0; i < temp.length-1; i++){
+        t1 = temp[i].split(",");
+        gHist.push([parseInt(t1[0]),parseInt(t1[1]),parseInt(t1[2])]);
+    }
+}
+
+function update_highlight(){
+    for(var i=0; i < gHist.length; i++){
+        //alert(i);
+        temp = gHist[i];
+        if (temp[0] != 3){
+            for(var j=temp[1]; j <= temp[2]; j++){
+                $("#t_"+j).css("background-color",type_color[temp[0]]);
+            }
+        }else{
+           for(var j=temp[1]; j <= temp[2]; j++){
+                $("#t_"+j).css("border-bottom","3px solid red");
+            }
+        }
+    }
+    alert("Start");
+}
+
+$(document).ready(function(){
+    $("option[value={{tid}}]").attr("selected","true");
+    update_history();
+    update_highlight();
+});
+
+
+
+</script>
+<table>
+<tr><td>
+    <div id="radio" style="margin-left:10px;">
+        <input type="radio" id="radio1" name="radio" onclick="select_chunk(0);" checked="checked" /><label for="radio1">NP</label>
+        <input type="radio" id="radio2" name="radio" onclick="select_chunk(1);" /><label for="radio2">VPI</label>
+        <input type="radio" id="radio3" name="radio" onclick="select_chunk(2);" /><label for="radio3">VPT</label>
+        <input type="radio" id="radio4" name="radio" onclick="select_chunk(3);" /><label for="radio4">SNP</label>
+    </div>
+
+<table style="margin-left:9px;">
+<tr height=10>
+<td width=35 style="background-color:#EFE87B;"></td>
+<td width=36 style="background-color:#C6F6EF;"></td>
+<td width=35 style="background-color:#EF99A9;"></td>
+</tr>
+</table>
+</td>
+<td width=700 align=right>
+<script>
+function save_tagging(){
+    var hist = dump_history(gHist);
+    var tid = $("#txtTextID").val();
+    $.post("/app_chunking/tagging_editor/save",{history : hist, textid : tid},function (data){
+        alert(data);
+    });
+}
+
+function save_and_next(){
+    var hist = dump_history(gHist);
+    var tid = $("#txtTextID").val();
+    $.post("/app_chunking/tagging_editor/save",{history : hist, textid : tid},function (data){
+        next = parseInt(tid) + 1;
+        if (next < 97){
+            redirect("/app_chunking/tagging_editor/index?tid=" + next);
+        }else{
+            alert("This is the last page.");
+        }
+    });
+}
+
+function save_and_previous(){
+    var hist = dump_history(gHist);
+    var tid = $("#txtTextID").val();
+     $.post("/app_chunking/tagging_editor/save",{history : hist, textid : tid},function (data){
+        next = parseInt(tid) - 1;
+        if (next > 0){
+            redirect("/app_chunking/tagging_editor/index?tid=" + next);
+        }else{
+            alert("This is the first page.");
+        }
+    });
+}
+
+function undo_tagging(){
+    var temp = gHist.pop();
+    index = temp
+    start = parseInt(index[1]);
+    end = parseInt(index[2]);
+    for(var i=start; i <= end; i++){
+        $("#t_"+i).css("background-color","#ffffff");
+        $("#t_"+i).css("border-bottom","0px");
+    }
+}
+</script>
+<input type=button value="Undo" onclick="undo_tagging()" />
+<input type=button value="Save" onclick="save_tagging()" />
+<input type=hidden value="{{tid}}" id="txtTextID"/>
+<input type=button value="Save and Previous" onclick="save_and_previous()" />
+<input type=button value="Save and Next" onclick="save_and_next()" />
+{{page_select|safe}}
+<input type=button onclick="goto_page()" value="Go" />
+</td>
+</tr>
+</table>
+<div id="txtText" style="line-height:250%; margin:10px; padding:10px; height:450px; width:95%; border:1px solid #333333; overflow:scroll">
+{{text}}
+</div>
+</div>
+{% endblock %}
